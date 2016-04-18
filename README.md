@@ -1,5 +1,5 @@
-Pocket
-======
+HyperTrack Python Bindings
+==========================
 [![Build Status](https://travis-ci.org/hypertrack/hypertrack-python.png)](https://travis-ci.org/hypertrack/hypertrack-python/)
 [![Pypi](https://badge.fury.io/py/hypertrack.png)](http://badge.fury.io/py/hypertrack)
 [![Code Health](https://landscape.io/github/hypertrack/hypertrack-python/master/landscape.png)](https://landscape.io/github/hypertrack/hypertrack-python/master)
