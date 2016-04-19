@@ -15,13 +15,12 @@ pip install hypertrack
 Usage
 ------
 
-You'll need your hypertrack secret and publishable key. You can find this from your account page.
-Then, you need to create an instance of the hypertrackapi object
+You'll need your hypertrack secret key. You can find this from your account page.
+Then, you can just import hypertrack and set your secret key on it.
 
 ```python
-from hypertrack import HyperTrackAPI
-
-hypertrack = HyperTrackAPI(publishable_key, secret_key)
+import hypertrack
+hypertrack.secret_key = <secret_key>
 ```
 
 For detailed documentation of the methods available, please visit the official [HyperTrack API documentation](http://docs.hypertrack.io).
