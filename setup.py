@@ -14,11 +14,12 @@ except ImportError:
 
 path, script = os.path.split(sys.argv[0])
 os.chdir(os.path.abspath(path))
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'hypertrack'))
-from version import VERSION
 
 with open('LONG_DESCRIPTION.rst') as f:
     long_description = f.read()
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'hypertrack'))
+from version import VERSION
 
 setup(
     name = 'hypertrack', # pip install hypertrack
