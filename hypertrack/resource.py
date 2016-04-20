@@ -1,6 +1,12 @@
 import sys
 import json
-from urlparse import urljoin
+
+try:
+    # Python 3
+    from urllib.parse import urljoin
+except ImportError:
+    # Python 2
+    from urlparse import urljoin
 
 import requests
 
