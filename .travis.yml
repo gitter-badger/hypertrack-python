@@ -18,13 +18,11 @@ install:
     - python setup.py install
 
 before_script:
-    - mkdir -p shippable/codecoverage
-    - mkdir -p shippable/testresults
+    - mkdir -p travis/codecoverage
+    - mkdir -p travis/testresults
 
 script:
-    - nosetests --with-xunit --xunit-file=shippable/testresults/nosetests.xml
-    - coverage run --branch hypertrack
-    - coverage xml -o shippable/codecoverage/coverage.xml hypertrack
+    - nosetests
 
 notifications:
     email:
