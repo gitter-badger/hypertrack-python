@@ -6,6 +6,11 @@ try:
 except ImportError:
     from distutils.core import setup
 
+try:
+    from distutils.command.build_py import build_py_2to3 as build_py
+except ImportError:
+    from distutils.command.build_py import build_py
+
 
 path, script = os.path.split(sys.argv[0])
 os.chdir(os.path.abspath(path))
@@ -16,16 +21,17 @@ with open('LONG_DESCRIPTION.rst') as f:
     long_description = f.read()
 
 setup(
-    name = "hypertrack", # pip install hypertrack
-    description = "api wrapper for hypertrack.io",
+    name = 'hypertrack', # pip install hypertrack
+    description = 'api wrapper for hypertrack.io',
     long_description=long_description,
     version = VERSION,
     author = 'HyperTrack',
-    author_email = "devops@hypertrack.io",
+    author_email = 'devops@hypertrack.io',
     url = 'http://github.com/hypertrack/hypertrack-python/',
     license = 'MIT',
-    install_requires = ["requests >= 0.8.8", ],
-    py_modules = ["hypertrack"],
+    install_requires = ['requests >= 0.8.8', ],
+    py_modules = ['hypertrack'],
+    packages = ['hypertrack', 'hypertrack.test'],
     zip_safe = True,
     classifiers=[
         "Development Status :: 5 - Production/Stable",
