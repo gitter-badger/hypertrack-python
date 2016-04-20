@@ -7,7 +7,7 @@ except ImportError:
     from distutils.core import setup
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'hypertrack'))
-from version import VERSION
+from hypertrack.version import VERSION
 
 with open('LONG_DESCRIPTION.rst') as f:
     long_description = f.read()
