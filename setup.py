@@ -6,8 +6,11 @@ try:
 except ImportError:
     from distutils.core import setup
 
-# sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'hypertrack'))
-# from version import VERSION
+
+path, script = os.path.split(sys.argv[0])
+os.chdir(os.path.abspath(path))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'hypertrack'))
+from version import VERSION
 
 with open('LONG_DESCRIPTION.rst') as f:
     long_description = f.read()
@@ -16,7 +19,7 @@ setup(
     name = "hypertrack", # pip install hypertrack
     description = "api wrapper for hypertrack.io",
     long_description=long_description,
-    version = 0.1.2,
+    version = VERSION,
     author = 'HyperTrack',
     author_email = "devops@hypertrack.io",
     url = 'http://github.com/hypertrack/hypertrack-python/',
