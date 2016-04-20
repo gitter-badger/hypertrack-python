@@ -22,18 +22,21 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'hypertrack'))
 from version import VERSION
 
 setup(
-    name = 'hypertrack', # pip install hypertrack
-    description = 'api wrapper for hypertrack.io',
+    name='hypertrack', # pip install hypertrack
+    description='api wrapper for hypertrack.io',
     long_description=long_description,
-    version = VERSION,
-    author = 'HyperTrack',
-    author_email = 'devops@hypertrack.io',
-    url = 'http://github.com/hypertrack/hypertrack-python/',
-    license = 'MIT',
-    install_requires = ['requests >= 0.8.8', ],
-    py_modules = ['hypertrack'],
-    packages = ['hypertrack', 'hypertrack.test'],
-    zip_safe = True,
+    version=VERSION,
+    author='HyperTrack',
+    author_email='devops@hypertrack.io',
+    url='http://github.com/hypertrack/hypertrack-python/',
+    license='MIT',
+    install_requires=['requests >= 0.8.8', ],
+    py_modules=['hypertrack'],
+    packages=['hypertrack', 'hypertrack.test'],
+    package_data={
+        '': ['*.rst', '*.md'],
+    },
+    zip_safe=True,
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
