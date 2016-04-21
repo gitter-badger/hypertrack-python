@@ -16,10 +16,7 @@ install:
     - pip install --upgrade coverage pytest unittest2
     - python setup.py clean --all
     - python setup.py install
-
-before_script:
-    - mkdir -p travis/codecoverage
-    - mkdir -p travis/testresults
+    - python setup.py clean --all
 
 script:
     - py.test
