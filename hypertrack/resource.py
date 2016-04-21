@@ -160,19 +160,23 @@ class APIResource(HyperTrackObject):
         if response.status_code in [401, 403]:
             raise exceptions.AuthenticationException(response.content,
                                                      response.content,
-                                                     response.status_code)
+                                                     response.status_code,
+                                                     response.headers)
         elif response.status_code == 429:
             raise exceptions.RateLimitException(response.content,
                                                 response.content,
-                                                response.status_code)
+                                                response.status_code,
+                                                response.headers)
         elif response.status_code in [400, 404]:
             raise exceptions.InvalidRequestException(response.content,
                                                      response.content,
-                                                     response.status_code)
+                                                     response.status_code,
+                                                     response.headers)
         else:
             raise exceptions.APIException(response.content,
                                           response.content,
-                                          response.status_code)
+                                          response.status_code,
+                                          response.headers)
 
     @classmethod
     def get_class_url(cls):
@@ -276,7 +280,7 @@ class Driver(APIResource, CreateMixin, RetrieveMixin, UpdateMixin, ListMixin):
 
         super(Driver, cls).create(files=files, **data)
 
-    def save(self):
+    def save(self, *args, **kwargs):
         '''
         '''
         if 'photo' in self._unsaved_keys:
