@@ -13,18 +13,16 @@ cache:
   pip: false
 
 install:
-    - pip install requests coverage
+    - pip install requests coverage pytest
     - python setup.py clean --all
     - python setup.py install
 
 before_script:
-    - mkdir -p shippable/codecoverage
-    - mkdir -p shippable/testresults
+    - mkdir -p travis/codecoverage
+    - mkdir -p travis/testresults
 
 script:
-    - nosetests --with-xunit --xunit-file=shippable/testresults/nosetests.xml
-    - coverage run --branch pocket.py
-    - coverage xml -o shippable/codecoverage/coverage.xml pocket.py
+    - py.test
 
 notifications:
     email:
