@@ -1,3 +1,6 @@
+import sys
+
+
 class HyperTrackException(Exception):
     '''
     Base exception for all exceptions raised by HyperTrack library
@@ -18,6 +21,17 @@ class HyperTrackException(Exception):
         self.http_status = http_status
         self.json_body = json_body
         self.headers = headers or {}
+
+    def __unicode__(self):
+        msg = self._message or "<empty message>"
+        return u'{0}'.format(msg)
+
+    if sys.version_info > (3, 0):
+        def __str__(self):
+            return self.__unicode__()
+    else:
+        def __str__(self):
+            return unicode(self).encode('utf-8')
 
 
 class APIException(HyperTrackException):

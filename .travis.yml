@@ -1,9 +1,7 @@
 language: python
 python:
-    - "2.6"
     - "2.7"
     - "pypy"
-    - "3.2"
     - "3.3"
     - "3.4"
     - "3.5"
@@ -13,13 +11,10 @@ cache:
   pip: false
 
 install:
-    - pip install requests coverage pytest
+    - pip install --upgrade coverage pytest unittest2
     - python setup.py clean --all
     - python setup.py install
-
-before_script:
-    - mkdir -p travis/codecoverage
-    - mkdir -p travis/testresults
+    - python setup.py clean --all
 
 script:
     - py.test
