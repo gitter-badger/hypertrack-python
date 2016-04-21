@@ -13,7 +13,7 @@ cache:
   pip: false
 
 install:
-    - pip install --upgrade coverage pytest
+    - pip install --upgrade coverage pytest unittest2
     - python setup.py clean --all
     - python setup.py install
 
