@@ -13,7 +13,7 @@ cache:
   pip: false
 
 install:
-    - pip install requests coverage pytest
+    - pip install --upgrade requests coverage pytest
     - python setup.py clean --all
     - python setup.py install
 
