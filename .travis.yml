@@ -11,7 +11,7 @@ cache:
   pip: false
 
 install:
-    - pip install --upgrade coverage pytest unittest2 pytest-cov
+    - pip install --upgrade coverage pytest unittest2 pytest-cov coveralls
     - python setup.py clean --all
     - python setup.py install
     - python setup.py clean --all
