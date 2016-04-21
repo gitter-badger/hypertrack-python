@@ -11,20 +11,16 @@ cache:
   pip: false
 
 install:
-    - pip install --upgrade coverage pytest unittest2
+    - pip install --upgrade coverage pytest unittest2 pytest-cov
     - python setup.py clean --all
     - python setup.py install
     - python setup.py clean --all
 
 script:
-    - py.test
+    - py.test --cov=hypertrack
 
-notifications:
-    email:
-        recipients:
-            - devops@hypertrack.io
-        on_success: change
-        on_failure: always
+after_success:
+    - coveralls
 
 branches:
     only:
