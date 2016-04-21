@@ -19,12 +19,19 @@ class HyperTrackObject(dict):
     Base HyperTrack object
     '''
     def __init__(self, *args, **kwargs):
+        self._unsaved_keys = set()
         super(HyperTrackObject, self).__init__(*args, **kwargs)
 
     def __setattr__(self, k, v):
-        self[k] = v
+        if k[0] == '_' or k in self.__dict__:
+            return super(HyperTrackObject, self).__setattr__(k, v)
+        else:
+            self[k] = v
 
     def __getattr__(self, k):
+        if k[0] == '_':
+            raise AttributeError(k)
+
         try:
             return self[k]
         except KeyError as err:
@@ -32,6 +39,14 @@ class HyperTrackObject(dict):
 
     def __delattr__(self, k):
         del self[k]
+
+    def __setitem__(self, k, v):
+        super(HyperTrackObject, self).__setitem__(k, v)
+        self._unsaved_keys.add(k)
+
+    def __delitem__(self, k):
+        super(HyperTrackObject, self).__delitem__(k)
+        self._unsaved_keys.remove(k)
 
     @property
     def hypertrack_id(self):
@@ -96,35 +111,42 @@ class APIResource(HyperTrackObject):
         return user_agent
 
     @classmethod
-    def _get_headers(cls):
+    def _get_headers(cls, has_files=False):
         '''
         '''
         headers = {
             'Authorization': 'token %s' % cls._get_secret_key(),
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
             'User-Agent': cls._get_user_agent(),
         }
+
+        if not has_files:
+            headers['Content-Type'] = 'application/json'
+
         return headers
 
     @classmethod
-    def _make_request(cls, method, url, data=None, params=None):
+    def _make_request(cls, method, url, data=None, params=None, files=None):
         '''
         '''
-        if data:
+        #TODO: Handle file uploads cleanly
+        if data and not files:
             data = json.dumps(data)
 
-        headers = cls._get_headers()
+        if files:
+            headers = cls._get_headers(has_files=True)
+        else:
+            headers = cls._get_headers(has_files=False)
 
         try:
             resp = requests.request(method, url, headers=headers, data=data,
-                                    params=params, timeout=20)
-        except Exception as excp:
+                                    params=params, files=files, timeout=20)
+        except (requests.exceptions.ConnectionError,
+                requests.exceptions.Timeout) as excp:
             msg = ('Unexpected error communicating with HyperTrack.  '
                    'If this problem persists, let us know at '
                    'contact@hypertrack.io. %s')
             err = '%s: %s' % (type(excp).__name__, str(excp))
-            exceptions.APIConnectionException(msg % err)
+            raise exceptions.APIConnectionException(msg % err)
 
         if not 200 <= resp.status_code < 300:
             cls._handle_api_error(resp)
@@ -172,9 +194,9 @@ class CreateMixin(object):
     '''
     '''
     @classmethod
-    def create(cls, **data):
+    def create(cls, files=None, **data):
         url = cls.get_class_url()
-        resp = cls._make_request('post', url, data=data)
+        resp = cls._make_request('post', url, data=data, files=files)
         return cls(**resp.json())
 
 
@@ -204,8 +226,12 @@ class ListMixin(object):
 class UpdateMixin(object):
     '''
     '''
-    def save(self, **kwargs):
-        pass
+    def save(self, files=None):
+        url = self.get_instance_url()
+        data = {k: getattr(self, k) for k in self._unsaved_keys}
+        resp = self._make_request('patch', url, data=data, files=files)
+        self._unsaved_keys = set()
+        return self.__class__(**resp.json())
 
 
 class DeleteMixin(object):
@@ -215,43 +241,66 @@ class DeleteMixin(object):
         pass
 
 
-class Customer(APIResource, CreateMixin, RetrieveMixin, ListMixin):
+class Customer(APIResource, CreateMixin, RetrieveMixin, UpdateMixin, ListMixin):
     '''
     '''
     resource_url = 'customers/'
 
 
-class Destination(APIResource, CreateMixin, RetrieveMixin, ListMixin):
+class Destination(APIResource, CreateMixin, RetrieveMixin, UpdateMixin,
+                  ListMixin):
     '''
     '''
     resource_url = 'destinations/'
 
 
-class Fleet(APIResource, CreateMixin, RetrieveMixin, ListMixin):
+class Fleet(APIResource, CreateMixin, RetrieveMixin, UpdateMixin, ListMixin):
     '''
     '''
     resource_url = 'fleets/'
 
 
-class Driver(APIResource, CreateMixin, RetrieveMixin, ListMixin):
+class Driver(APIResource, CreateMixin, RetrieveMixin, UpdateMixin, ListMixin):
     '''
     '''
     resource_url = 'drivers/'
 
+    @classmethod
+    def create(cls, **data):
+        '''
+        '''
+        if 'photo' in data:
+            files = {'photo': data.pop('photo')}
+        else:
+            files = None
 
-class Hub(APIResource, CreateMixin, RetrieveMixin, ListMixin):
+        super(Driver, cls).create(files=files, **data)
+
+    def save(self):
+        '''
+        '''
+        if 'photo' in self._unsaved_keys:
+            files = {'photo': self.photo}
+            self._unsaved_keys.remove('photo')
+        else:
+            files = None
+
+        super(Driver, self).save(files=files)
+
+
+class Hub(APIResource, CreateMixin, RetrieveMixin, UpdateMixin, ListMixin):
     '''
     '''
     resource_url = 'hubs/'
 
 
-class Task(APIResource, CreateMixin, RetrieveMixin, ListMixin):
+class Task(APIResource, CreateMixin, RetrieveMixin, UpdateMixin, ListMixin):
     '''
     '''
     resource_url = 'tasks/'
 
 
-class Trip(APIResource, CreateMixin, RetrieveMixin, ListMixin):
+class Trip(APIResource, CreateMixin, RetrieveMixin, UpdateMixin, ListMixin):
     '''
     '''
     resource_url = 'trips/'
