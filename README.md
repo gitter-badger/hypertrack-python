@@ -1,7 +1,7 @@
 HyperTrack Python Bindings
 ==========================
 [![Build Status](https://travis-ci.org/hypertrack/hypertrack-python.png)](https://travis-ci.org/hypertrack/hypertrack-python/)
-[![Pypi](https://badge.fury.io/py/hypertrack.png)](http://badge.fury.io/py/hypertrack)
+[![PyPI version](https://badge.fury.io/py/hypertrack.svg)](https://badge.fury.io/py/hypertrack)
 [![Coverage Status](https://coveralls.io/repos/github/hypertrack/hypertrack-python/badge.svg?branch=master)](https://coveralls.io/github/hypertrack/hypertrack-python?branch=master)
 [![Code Health](https://landscape.io/github/hypertrack/hypertrack-python/master/landscape.png)](https://landscape.io/github/hypertrack/hypertrack-python/master)
 
@@ -40,3 +40,15 @@ For detailed documentation of the methods available, please visit the official [
 
 Testing
 -------
+We commit to being compatible with Python 2.7+, Python 3.3+ and PyPy. We need to test against all of these environments to ensure compatibility. Travis CI will automatically run our tests on push. For local testing, we use pytest to handle testing across environments.
+
+You will need to install pytest first which you can do using the following command:
+```
+pip install pytest
+```
+
+For running the tests, use the following command:
+```
+py.test
+```
+This will run all the tests for the packages.
