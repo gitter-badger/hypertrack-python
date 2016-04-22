@@ -12,7 +12,7 @@ class HyperTrackException(Exception):
         if http_body and hasattr(http_body, 'decode'):
             try:
                 http_body = http_body.decode('utf-8')
-            except:
+            except UnicodeDecodeError:
                 http_body = ('<Could not decode body as utf-8. '
                              'Please report to support@hypertrack.io>')
 
@@ -34,20 +34,35 @@ class HyperTrackException(Exception):
 
 
 class APIException(HyperTrackException):
+    '''
+    Raised when there is an unknown API Exception
+    '''
     pass
 
 
 class APIConnectionException(HyperTrackException):
+    '''
+    Raised when there is an issue connecting to the API
+    '''
     pass
 
 
 class InvalidRequestException(HyperTrackException):
+    '''
+    Raised when the request parameters are invalid
+    '''
     pass
 
 
 class AuthenticationException(HyperTrackException):
+    '''
+    Raised when the authentication token is incorrect
+    '''
     pass
 
 
 class RateLimitException(HyperTrackException):
+    '''
+    Raised when rate limit is exceeded (max tasks reached for the day)
+    '''
     pass
