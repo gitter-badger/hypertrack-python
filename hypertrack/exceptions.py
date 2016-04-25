@@ -6,20 +6,19 @@ class HyperTrackException(Exception):
     Base exception for all exceptions raised by HyperTrack library
     '''
     def __init__(self, message=None, http_body=None, http_status=None,
-                 json_body=None, headers=None):
+                 headers=None):
         super(HyperTrackException, self).__init__(message)
 
         if http_body and hasattr(http_body, 'decode'):
             try:
                 http_body = http_body.decode('utf-8')
-            except:
+            except UnicodeDecodeError:
                 http_body = ('<Could not decode body as utf-8. '
                              'Please report to support@hypertrack.io>')
 
         self._message = message
         self.http_body = http_body
         self.http_status = http_status
-        self.json_body = json_body
         self.headers = headers or {}
 
     def __unicode__(self):
@@ -35,20 +34,35 @@ class HyperTrackException(Exception):
 
 
 class APIException(HyperTrackException):
+    '''
+    Raised when there is an unknown API Exception
+    '''
     pass
 
 
 class APIConnectionException(HyperTrackException):
+    '''
+    Raised when there is an issue connecting to the API
+    '''
     pass
 
 
 class InvalidRequestException(HyperTrackException):
+    '''
+    Raised when the request parameters are invalid
+    '''
     pass
 
 
 class AuthenticationException(HyperTrackException):
+    '''
+    Raised when the authentication token is incorrect
+    '''
     pass
 
 
 class RateLimitException(HyperTrackException):
+    '''
+    Raised when rate limit is exceeded (max tasks reached for the day)
+    '''
     pass

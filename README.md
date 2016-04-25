@@ -40,7 +40,7 @@ For detailed documentation of the methods available, please visit the official [
 
 Testing
 -------
-We commit to being compatible with Python 2.7+, Python 3.3+ and PyPy. We need to test against all of these environments to ensure compatibility. Travis CI will automatically run our tests on push. For local testing, we use pytest to handle testing across environments.
+We commit to being compatible with Python 2.6+, Python 3.3+ and PyPy. We need to test against all of these environments to ensure compatibility. Travis CI will automatically run our tests on push. For local testing, we use pytest to handle testing across environments.
 
 You will need to install pytest first which you can do using the following command:
 ```

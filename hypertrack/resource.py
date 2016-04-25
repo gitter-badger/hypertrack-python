@@ -3,10 +3,10 @@ import json
 
 try:
     # Python 3
-    from urllib.parse import urljoin
+    from urllib import parse as urlparse
 except ImportError:
     # Python 2
-    from urlparse import urljoin
+    import urlparse
 
 import requests
 
@@ -73,21 +73,6 @@ class HyperTrackObject(dict):
         return json.dumps(self, sort_keys=True, indent=2)
 
 
-class ListObject(HyperTrackObject):
-    '''
-    '''
-    def __init__(self, object_class, **kwargs):
-        '''
-        '''
-        super(ListObject, self).__init__(**kwargs)
-        self.results = [object_class(**obj) for obj in self.results]
-
-    def __iter__(self):
-        '''
-        '''
-        return getattr(self, 'results', []).__iter__()
-
-
 class APIResource(HyperTrackObject):
     '''
     Defines the base HyperTrack API resource
@@ -96,15 +81,22 @@ class APIResource(HyperTrackObject):
 
     @classmethod
     def _get_secret_key(cls):
+        '''
+        Returns the secret key to be used for the API request
+        '''
         return hypertrack.secret_key
 
     @classmethod
     def _get_base_url(cls):
+        '''
+        Returns the base URL to be used for the API request
+        '''
         return hypertrack.base_url
 
     @classmethod
     def _get_user_agent(cls):
         '''
+        Returns user agent for the API request
         '''
         user_agent = 'HyperTrack/v1 PythonBindings/{version}'.format(
             version=version.VERSION)
@@ -113,6 +105,7 @@ class APIResource(HyperTrackObject):
     @classmethod
     def _get_headers(cls, has_files=False):
         '''
+        Returns headers for the API request
         '''
         headers = {
             'Authorization': 'token %s' % cls._get_secret_key(),
@@ -127,6 +120,7 @@ class APIResource(HyperTrackObject):
     @classmethod
     def _make_request(cls, method, url, data=None, params=None, files=None):
         '''
+        Makes the network call to the API
         '''
         #TODO: Handle file uploads cleanly
         if data and not files:
@@ -156,45 +150,115 @@ class APIResource(HyperTrackObject):
     @classmethod
     def _handle_api_error(cls, response):
         '''
+        Raises appropriate exceptions for API errors
         '''
         if response.status_code in [401, 403]:
             raise exceptions.AuthenticationException(response.content,
                                                      response.content,
-                                                     response.status_code)
+                                                     response.status_code,
+                                                     response.headers)
         elif response.status_code == 429:
             raise exceptions.RateLimitException(response.content,
                                                 response.content,
-                                                response.status_code)
+                                                response.status_code,
+                                                response.headers)
         elif response.status_code in [400, 404]:
             raise exceptions.InvalidRequestException(response.content,
                                                      response.content,
-                                                     response.status_code)
+                                                     response.status_code,
+                                                     response.headers)
         else:
             raise exceptions.APIException(response.content,
                                           response.content,
-                                          response.status_code)
+                                          response.status_code,
+                                          response.headers)
 
     @classmethod
     def get_class_url(cls):
         '''
+        Returns the URI for the resource
         '''
-        url = urljoin(cls._get_base_url(), cls.resource_url)
+        url = urlparse.urljoin(cls._get_base_url(), cls.resource_url)
         return url
 
     def get_instance_url(self):
         '''
+        Returns the URI for the individual resource
         '''
-        url = urljoin(self._get_base_url(),
+        url = urlparse.urljoin(self._get_base_url(),
                       '{resource_url}{resource_id}/'.format(
                           resource_url=self.resource_url, resource_id=self.id))
         return url
 
 
+class ListObject(APIResource):
+    '''
+    Base HyperTrack list object
+    '''
+    def __new__(cls, object_class, **kwargs):
+        cls.resource_url = object_class.resource_url
+        return APIResource.__new__(cls, object_class, **kwargs)
+
+    def __init__(self, object_class, **kwargs):
+        '''
+        Converts objects in the list to their resource class
+        '''
+        super(ListObject, self).__init__(**kwargs)
+        self._object_class = object_class
+
+        if self.get('results'):
+            self.results = [object_class(**obj) for obj in self.results]
+        else:
+            self.results = []
+
+    def __iter__(self):
+        '''
+        Allow iteration over the resources in the list
+        '''
+        return getattr(self, 'results', []).__iter__()
+
+    def list(self, **params):
+        '''
+        Mixin method to list the resources from the API
+        '''
+        url = self.get_class_url()
+        resp = self._make_request('get', url, params=params)
+        return ListObject(self._object_class, **resp.json())
+
+    def next_page(self):
+        '''
+        Returns a list object for the next page
+        '''
+        if self.get('next'):
+            querystring = urlparse.urlparse(self.next).query
+            params = dict(urlparse.parse_qsl(querystring))
+            return self.list(**params)
+        else:
+            # TODO: Should we raise exception here?
+            return self.__class__(self._object_class)
+
+    def previous_page(self):
+        '''
+        Returns a list object for the previous page
+        '''
+        if self.get('previous'):
+            querystring = urlparse.urlparse(self.previous).query
+            params = dict(urlparse.parse_qsl(querystring))
+            return self.list(**params)
+        else:
+            # TODO: Should we raise exception here?
+            return self.__class__(self._object_class)
+
+
 class CreateMixin(object):
     '''
+    Mixin to allow resources to be created on the API
     '''
     @classmethod
     def create(cls, files=None, **data):
+        '''
+        Mixin method to create the resource on the API
+        '''
         url = cls.get_class_url()
         resp = cls._make_request('post', url, data=data, files=files)
         return cls(**resp.json())
@@ -202,10 +266,14 @@ class CreateMixin(object):
 
 class RetrieveMixin(object):
     '''
+    Mixin to allow a resource to be retrieved from the API
     '''
     @classmethod
     def retrieve(cls, hypertrack_id):
-        url = urljoin(cls._get_base_url(),
+        '''
+        Mixin method to retrieve the resource from the API
+        '''
+        url = urlparse.urljoin(cls._get_base_url(),
                       '{resource_url}{resource_id}/'.format(
                           resource_url=cls.resource_url,
                           resource_id=hypertrack_id))
@@ -215,20 +283,28 @@ class RetrieveMixin(object):
 
 class ListMixin(object):
     '''
+    Mixin to allow resources to be listed from the API
     '''
     @classmethod
     def list(cls, **params):
-        url = urljoin(cls._get_base_url(), cls.resource_url)
+        '''
+        Mixin method to list the resources from the API
+        '''
+        url = cls.get_class_url()
         resp = cls._make_request('get', url, params=params)
         return ListObject(cls, **resp.json())
 
 
 class UpdateMixin(object):
     '''
+    Mixin to allow a resource to be updated on the API
     '''
     def save(self, files=None):
+        '''
+        Mixin method to update the resource on the API
+        '''
         url = self.get_instance_url()
-        data = {k: getattr(self, k) for k in self._unsaved_keys}
+        data = dict([(k, getattr(self, k)) for k in self._unsaved_keys])
         resp = self._make_request('patch', url, data=data, files=files)
         self._unsaved_keys = set()
         return self.__class__(**resp.json())
@@ -236,13 +312,20 @@ class UpdateMixin(object):
 
 class DeleteMixin(object):
     '''
+    Mixin to allow a resource to be deleted on the API
     '''
     def delete(self):
-        pass
+        '''
+        Mixin method to update the resource on the API
+        '''
+        url = self.get_instance_url()
+        resp = self._make_request('delete', url)
+        return self
 
 
 class Customer(APIResource, CreateMixin, RetrieveMixin, UpdateMixin, ListMixin):
     '''
+    The Customer Resource: http://docs.hypertrack.io/docs/customers
     '''
     resource_url = 'customers/'
 
@@ -250,18 +333,21 @@ class Customer(APIResource, CreateMixin, RetrieveMixin, UpdateMixin, ListMixin):
 class Destination(APIResource, CreateMixin, RetrieveMixin, UpdateMixin,
                   ListMixin):
     '''
+    The Destination Resource: http://docs.hypertrack.io/docs/destinations
     '''
     resource_url = 'destinations/'
 
 
 class Fleet(APIResource, CreateMixin, RetrieveMixin, UpdateMixin, ListMixin):
     '''
+    The Fleet Resource: http://docs.hypertrack.io/docs/fleets
     '''
     resource_url = 'fleets/'
 
 
 class Driver(APIResource, CreateMixin, RetrieveMixin, UpdateMixin, ListMixin):
     '''
+    The Driver Resource: http://docs.hypertrack.io/docs/drivers
     '''
     resource_url = 'drivers/'
 
@@ -276,7 +362,7 @@ class Driver(APIResource, CreateMixin, RetrieveMixin, UpdateMixin, ListMixin):
 
         super(Driver, cls).create(files=files, **data)
 
-    def save(self):
+    def save(self, *args, **kwargs):
         '''
         '''
         if 'photo' in self._unsaved_keys:
@@ -290,29 +376,49 @@ class Driver(APIResource, CreateMixin, RetrieveMixin, UpdateMixin, ListMixin):
 
 class Hub(APIResource, CreateMixin, RetrieveMixin, UpdateMixin, ListMixin):
     '''
+    The Hub Resource: http://docs.hypertrack.io/docs/hubs
     '''
     resource_url = 'hubs/'
 
 
 class Task(APIResource, CreateMixin, RetrieveMixin, UpdateMixin, ListMixin):
     '''
+    The Task Resource: http://docs.hypertrack.io/docs/tasks
     '''
     resource_url = 'tasks/'
+
+    def complete(self, **data):
+        url = urlparse.urljoin(self.get_instance_url(), 'completed/')
+        resp = self._make_request('post', url, data=data)
+        return self.__class__(**resp.json())
 
 
 class Trip(APIResource, CreateMixin, RetrieveMixin, UpdateMixin, ListMixin):
     '''
+    The Trip Resource: http://docs.hypertrack.io/docs/trips
     '''
     resource_url = 'trips/'
+
+    def end(self, **data):
+        url = urlparse.urljoin(self.get_instance_url(), 'end/')
+        resp = self._make_request('post', url, data=data)
+        return self.__class__(**resp.json())
 
 
 class GPSLog(APIResource, CreateMixin, RetrieveMixin, ListMixin):
     '''
+    The GPS Resource: http://docs.hypertrack.io/docs/gps-logs
     '''
     resource_url = 'gps/'
+
+    def filtered(self, **params):
+        url = urlparse.urljoin(self.get_class_url(), 'filtered/')
+        resp = self._make_request('get', url, params=params)
+        return ListObject(self, **resp.json())
 
 
 class Event(APIResource, RetrieveMixin, ListMixin):
     '''
+    The Event Resource: http://docs.hypertrack.io/docs/events
     '''
     resource_url = 'events/'
