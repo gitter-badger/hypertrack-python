@@ -1,5 +1,7 @@
 HyperTrack Python Bindings
 ==========================
+
+[![Join the chat at https://gitter.im/hypertrack/hypertrack-python](https://badges.gitter.im/hypertrack/hypertrack-python.svg)](https://gitter.im/hypertrack/hypertrack-python?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Build Status](https://travis-ci.org/hypertrack/hypertrack-python.svg)](https://travis-ci.org/hypertrack/hypertrack-python/)
 [![PyPI version](https://badge.fury.io/py/hypertrack.svg)](https://badge.fury.io/py/hypertrack)
 [![Coverage Status](https://coveralls.io/repos/github/hypertrack/hypertrack-python/badge.svg?branch=master)](https://coveralls.io/github/hypertrack/hypertrack-python?branch=master)
